@@ -1,18 +1,18 @@
+FROM golang:1.19.1-alpine3.16 AS builder
 
-FROM golang:1.22.3-alpine AS builder
+RUN mkdir app
 
-COPY go.mod go.sum ./
+COPY . /app
 
-RUN go mod download
+WORKDIR /app
 
-COPY . .
+RUN go build -o main cmd/main.go
 
-RUN go build -o main ./cmd/app
+FROM alpine:3.16
 
-FROM alpine:latest
+WORKDIR /app
 
-WORKDIR /root/
+COPY --from=builder /app .
+ENV DOT_ENV_PATH=config/.env
 
-COPY --from=builder /app/main .
-
-CMD ["./main"]
+CMD ["/app/main"]
